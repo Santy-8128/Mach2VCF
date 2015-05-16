@@ -4,8 +4,7 @@
 #include "StringBasics.h"
 #include "VcfFileReader.h"
 #include <fstream>
-#include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
+#include <sstream>
 using namespace std;
 
 

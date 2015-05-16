@@ -18,7 +18,7 @@ int main(int argc, char ** argv)
 	String refHaps = "";
 	String haps = "", snps = "";
 	String mach = "", shapeit = "";
-	String vcf = "Minimac3.Haps.Input";
+	String vcf = "Mach2VCF.Output";
 //	String format = "GT,DS";
 //	String recFile = "", errFile = "",chr="",golden="";
 //	int cpus=1,start=0, end=0, window=0, max_indiv = 0, max_marker = 0, max_block=0, rounds=5, states=200;
@@ -32,11 +32,8 @@ int main(int argc, char ** argv)
 	ParameterList inputParameters;
 	BEGIN_LONG_PARAMETERS(longParameterList)
 		LONG_PARAMETER_GROUP("Input Haplotypes")
-//		LONG_STRINGPARAMETER("mach", &mach)
-//		LONG_STRINGPARAMETER("shapeit", &shapeit)
         LONG_STRINGPARAMETER("haps", &haps)
 		LONG_STRINGPARAMETER("snps", &snps)
-
 		LONG_PARAMETER_GROUP("Output Parameters")
 		LONG_STRINGPARAMETER("prefix", &vcf)
 		LONG_PARAMETER("nogzip", &gzip)
@@ -62,9 +59,6 @@ int main(int argc, char ** argv)
 	inputParameters.Status();
     gzip=1-gzip;
 
-    #ifdef _OPENMP
-    omp_set_num_threads(cpus);
-    #endif
 
     if (haps == "" || snps == "" )
     {
@@ -120,7 +114,7 @@ int main(int argc, char ** argv)
 	printf("\n Total Run completed in %d hours, %d mins, %d seconds.\n",
 		time_tot / 3600, (time_tot % 3600) / 60, time_tot % 60);
 
-    cout<<"\n Thank You for using Minimac3 !!! "<<endl<<endl;
+    cout<<"\n Thank You for using Mach2VCF !!! "<<endl<<endl;
 
 
 

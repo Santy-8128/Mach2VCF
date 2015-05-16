@@ -27,7 +27,7 @@ USER_COMPILE_VARS = -DDATE="\"${DATE}\"" -DUSER="\"${USER}\"" -lcrypto
 #USER_COMPILE_VARS = 
 
 # Specify any additional includes you need.
-USER_INCLUDES =
+USER_INCLUDES = -I 
 
 # Specify any additional warnings you need to enable.
 # Example: 
@@ -42,6 +42,7 @@ USER_WARNINGS =-Wno-unknown-pragmas
 # Example: if you have Executable.cpp and Executable.h, specify:
 # COMPILE_ANY_CHANGE = BamExecutable
 COMPILE_ANY_CHANGE = 
+USER_REMOVES = $(MAKE) -C $(ACTUAL_PATH) --no-print-directory clean; rm -f $(BINDIR)/$(OMP_EXE); rm -rf $(OBJDIR)/omp
 
 # If you want to overwrite the default directory for the binaries, from the
 # Default setting of 'bin', uncomment the next line and specify a value.
