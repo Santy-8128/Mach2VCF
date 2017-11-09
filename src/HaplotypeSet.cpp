@@ -72,7 +72,7 @@ void HaplotypeSet::PrintVcfFile(String filename,bool gzip)
         {
             char a1=haplotypesUnscaffolded[2*hapId][i];
             char a2=haplotypesUnscaffolded[2*hapId+1][i];
-            ifprintf(vcfOutFile,"\t%d|%d",a1,a2);
+            ifprintf(vcfOutFile,"\t%c|%c",a1,a2);
         }
     }
 
@@ -140,6 +140,9 @@ bool HaplotypeSet::LoadSnpList(String filename)
         strs<<(VariantList[i].bp);
 
         VariantList[i].name=VariantList[i].chr+":"+(string)(strs.str());
+        VariantList[i].refAlleleString="---";
+        VariantList[i].altAlleleString="---";
+        
     }
 	return true;
 
@@ -148,7 +151,7 @@ bool HaplotypeSet::LoadSnpList(String filename)
 
 bool HaplotypeSet::LoadMachHaplotypes(String &haps, String &snps)
 {
-	cout<<"\n Format = MaCH (MArkov Chain based Haplotyper) "<<endl;
+	cout<<"\n Format = MaCH (Markov Chain based Haplotyper) "<<endl;
 
 
     String targetSnpfile=snps;
@@ -200,110 +203,69 @@ bool HaplotypeSet::LoadMachHaplotypes(String &haps, String &snps)
                 return false;
             }
 
-
-
             vector<char> tempHaps01(markerName.size(),0);
-            if(n==1)
+            
+            for (int j = 0; j<(int)markerName.size() ;  j++)
             {
-                for (int j = 0; j<(int)markerName.size() ;  j++)
+                
+                switch (tempHap[j])
                 {
-//                            char allele=0;
-                    switch (tempHap[j])
+
+                case 'A': case 'a': case '1': tempHap[j] = 'A'; break;
+                case 'C': case 'c': case '2': tempHap[j] = 'C'; break;
+                case 'G': case 'g': case '3': tempHap[j] = 'G'; break;
+                case 'T': case 't': case '4': tempHap[j] = 'T'; break;
+                case 'D': case 'd': case '5': tempHap[j] = 'D'; break;
+                case 'I': case 'i': case '6': tempHap[j] = 'I'; break;
+                case 'R': case 'r': case '7': tempHap[j] = 'R'; break;
+                default:
+                    if (!allowMissing)
                     {
 
-                    case 'A': case 'a': case '1': tempHap[j] = 'A'; break;
-                    case 'C': case 'c': case '2': tempHap[j] = 'C'; break;
-                    case 'G': case 'g': case '3': tempHap[j] = 'G'; break;
-                    case 'T': case 't': case '4': tempHap[j] = 'T'; break;
-                    case 'D': case 'd': case '5': tempHap[j] = 'D'; break;
-                    case 'I': case 'i': case '6': tempHap[j] = 'I'; break;
-                    case 'R': case 'r': case '7': tempHap[j] = 'R'; break;
-                    default:
-                        if (!allowMissing)
-                        {
+                        cout << " Error: Haplotypes can only contain alleles A ('A', 'a' or '1'),\n";
+                        cout << " C ('C', 'c' or 2), G ('G', 'g' or 3), T ('T', 't' or '4'),\n";
+                        cout << " D ('D', 'd' or 5), I ('I', 'i' or 6) and R ('R', 'r' or 7).\n";
+                        cout << "\n\n For Individual : " << individualName.back() << ", Haplotype #";
+                        cout << (n-1) % 2 +1 << " has allele \"" << tempHap[j] << "\" at position : ";
+                        cout << j + 1 << endl;
 
-                            cout << " Error: Haplotypes can only contain alleles A ('A', 'a' or '1'),\n";
-                            cout << " C ('C', 'c' or 2), G ('G', 'g' or 3), T ('T', 't' or '4'),\n";
-                            cout << " D ('D', 'd' or 5), I ('I', 'i' or 6) and R ('R', 'r' or 7).\n";
-                            cout << "\n\n For Individual : " << individualName.back() << ", Haplotype #";
-                            cout << (n-1) % 2 +1 << " has allele \"" << tempHap[j] << "\" at position : ";
-                            cout << j + 1 << endl;
+                        return false;
 
-
-                            return false;
-                        }
                     }
+                    tempHap[j] = '0';
+                    
+                }
 
+                char _a0_=VariantList[j].refAlleleString.c_str()[0];
+                char _a1_=VariantList[j].altAlleleString.c_str()[0];
+                
+                bool setrefallele = true;
+                setrefallele = setrefallele && VariantList[j].refAlleleString.compare("---")==0;
+                setrefallele = setrefallele && tempHap[j]!='0';
+                if (setrefallele)
                     VariantList[j].refAlleleString=tempHap.substr(j,1);
+                bool setaltallele = true;
+                setaltallele = setaltallele && (VariantList[j].altAlleleString.compare("---")==0 || _a0_==_a1_);
+                setaltallele = setaltallele && tempHap[j]!='0';
+                if (setaltallele)
                     VariantList[j].altAlleleString=tempHap.substr(j,1);
-//                            cout<<VariantList[j].refAlleleString<<endl;
+
+                if(tempHap[j]==VariantList[j].refAlleleString[0])
+                {
+                    tempHaps01[j]='0';
                 }
-                haplotypesUnscaffolded.push_back(tempHaps01);
+                else if(tempHap[j]==VariantList[j].altAlleleString[0])
+                {
+                    tempHaps01[j]='1';
+                }
+                else
+                {
+                    tempHaps01[j]='.';
+                }
+
             }
-            else
-            {
-                    for (int j = 0; j<(int)markerName.size() ;  j++)
-                    {
-//                                char allele=0;
-                        switch (tempHap[j])
-                        {
 
-                        case 'A': case 'a': case '1': tempHap[j] = 'A'; break;
-                        case 'C': case 'c': case '2': tempHap[j] = 'C'; break;
-                        case 'G': case 'g': case '3': tempHap[j] = 'G'; break;
-                        case 'T': case 't': case '4': tempHap[j] = 'T'; break;
-                        case 'D': case 'd': case '5': tempHap[j] = 'D'; break;
-                        case 'I': case 'i': case '6': tempHap[j] = 'I'; break;
-                        case 'R': case 'r': case '7': tempHap[j] = 'R'; break;
-                        default:
-                            if (!allowMissing)
-                            {
-
-                                cout << " Error: Haplotypes can only contain alleles A ('A', 'a' or '1'),\n";
-                                cout << " C ('C', 'c' or 2), G ('G', 'g' or 3), T ('T', 't' or '4'),\n";
-                                cout << " D ('D', 'd' or 5), I ('I', 'i' or 6) and R ('R', 'r' or 7).\n";
-                                cout << "\n\n For Individual : " << individualName.back() << ", Haplotype #";
-                                cout << (n-1) % 2 +1 << " has allele \"" << tempHap[j] << "\" at position : ";
-                                cout << j + 1 << endl;
-
-
-                                return false;
-                            }
-                        }
-
-                        if(tempHap[j]==VariantList[j].refAlleleString[0])
-                        {
-                            tempHaps01[j]=0;
-                        }
-                        else if(tempHap[j]==VariantList[j].altAlleleString[0])
-                        {
-                            tempHaps01[j]=1;
-                        }
-                        else
-                        {
-                            if(VariantList[j].refAlleleString[0]==VariantList[j].altAlleleString[0])
-                            {
-                                tempHaps01[j]=1;
-                                VariantList[j].altAlleleString[0]=tempHap[j];
-                            }
-                            else
-                            {
-                                cerr<<" Error !!! Only bi-allelic variants supported. \n";
-                                cerr<<" "<<VariantList[j].name<<" has more than 2 alleles : "<<VariantList[j].refAlleleString ;
-                                cout<<" , "<< VariantList[j].altAlleleString <<" , "<< tempHap[j]<<endl;
-                                cerr<<" Please check file "<<targetHapFile<<" !!! "<<endl<<endl;
-                                return false;
-                            }
-
-
-                        }
-
-                    }
-
-                    haplotypesUnscaffolded.push_back(tempHaps01);
-
-                }
-
+            haplotypesUnscaffolded.push_back(tempHaps01);
 
             line.clear();
 
